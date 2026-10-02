@@ -63,6 +63,7 @@ This gives users a clean dial: pay more, land on a faster provider.
 | Actor | Offense | Penalty |
 |---|---|---|
 | Provider | Fingerprint cosine similarity below threshold | Stake slashed, challenger rewarded |
+| Provider | Response truncated below `max_new_tokens` without ending in EOS | Stake slashed, challenger rewarded |
 | Provider | Chronically below declared tok/s | Stake slashed |
 | Verifier | Voted with the losing minority | Stake slashed |
 | Challenger | Challenge rejected by consensus | Bond forfeited |
@@ -102,6 +103,22 @@ Stopping at the activation level therefore:
 - **Keeps the protocol minimal** — one threshold (`cos_threshold`) rather than a battery of statistical tunables.
 
 If the threat model later expands to include adversarial *content* manipulation (e.g. biasing responses regardless of compute cost), sampling verification can be added as a second layer. For the economic-security use case, the fingerprint is sufficient.
+
+### Preventing the truncation attack
+
+One attack the fingerprint alone *doesn't* catch: a cheating provider generates only a handful of tokens (say 10 out of a mandated 128), publishes a valid fingerprint over those 10 real tokens, and pockets ~90% of the compute savings. The verifier teacher-forces the short response, recomputes the fingerprint over 10 projections, and gets `cos ≈ 1.0` — passing a check it shouldn't.
+
+We defend against this at two layers:
+
+1. **Economic (payment semantics).** Providers are paid per *actually generated* token, not per requested `max_new_tokens`. For margins to exist, price-per-token must exceed cost-per-token, so skipping a token loses the provider more revenue than it saves in compute. Truncation becomes self-penalizing.
+
+2. **Protocol check (completion rule).** The verifier enforces:
+
+   > If `n_tokens < max_new_tokens`, the last response token MUST equal the model's EOS token.
+
+   `max_new_tokens` is a protocol-fixed constant from the on-chain config. Honest early stops naturally produce EOS. A truncation attacker who just cuts off mid-stream fails this check and is slashed. An attacker who tries to forge an EOS mid-stream destroys user experience (abrupt stops) and loses demand.
+
+Combined, these two defenses corner the attacker: either generate the full requested length (no savings), stop at a legitimate EOS (no attack), or get slashed.
 
 ## Results
 

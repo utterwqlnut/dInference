@@ -1,7 +1,14 @@
 """Verifier pipeline: activation-fingerprint check only.
 
 Pipeline input: {"prompt": str, "response": str, "seed": int, "fingerprint": list[float]}
-Pipeline output: {"fp_cos": float, "n_tokens": int, "passed": bool}
+Pipeline output: {
+    "fp_cos": float, "n_tokens": int, "passed": bool,
+    "truncated": bool, "reason": str | None,
+}
+
+`max_new_tokens` is a protocol-fixed value loaded from config. If a response is
+shorter than that cap and does not end in EOS, verification fails
+(completion-rule check — stops providers from truncating to save compute).
 
 The provider's claimed fingerprint `f` was built as Σ_i h_i · P over the
 final-layer hidden states of the response, with P seeded from the per-request
@@ -40,6 +47,7 @@ class FingerprintVerifier(Pipeline):
         self.model_id = model_id
         self.proj_dim = int(cfg["fingerprint"]["proj_dim"])
         self.cos_threshold = float(cfg["fingerprint"]["cos_threshold"])
+        self.max_new_tokens = int(cfg["sampling"]["max_new_tokens"])
 
         dtype = _DTYPES[allowed[model_id].get("dtype", "bfloat16")]
         device = (
@@ -116,8 +124,26 @@ class FingerprintVerifier(Pipeline):
             ).item()
         )
 
+        # Completion-rule check: if the response is shorter than the protocol's
+        # max_new_tokens cap and doesn't end in EOS, the provider truncated to
+        # save compute. Slash.
+        last_token = int(input_ids[-1].item())
+        is_eos = (last_token == self.tokenizer.eos_token_id)
+        truncated = (n_tokens < self.max_new_tokens) and not is_eos
+
+        fp_ok = fp_cos > self.cos_threshold
+        passed = fp_ok and not truncated
+
+        reason = None
+        if not fp_ok:
+            reason = "fingerprint_mismatch"
+        elif truncated:
+            reason = "truncated_without_eos"
+
         return {
             "fp_cos": fp_cos,
             "n_tokens": n_tokens,
-            "passed": fp_cos > self.cos_threshold,
+            "truncated": truncated,
+            "passed": passed,
+            "reason": reason,
         }
