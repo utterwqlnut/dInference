@@ -103,6 +103,38 @@ Stopping at the activation level therefore:
 
 If the threat model later expands to include adversarial *content* manipulation (e.g. biasing responses regardless of compute cost), sampling verification can be added as a second layer. For the economic-security use case, the fingerprint is sufficient.
 
+## Results
+
+We evaluated the fingerprint check on **500 diverse prompts** across three scenarios, all claiming the same model (`Qwen2.5-1.5B-Instruct`) and verified against it:
+
+| Scenario | Actual model | Mean `fp_cos` | Pass rate |
+|---|---|---|---|
+| `honest` | Qwen2.5-1.5B-Instruct | **1.0000** | **1.0000** |
+| `cheat_same_family_smaller` | Qwen2.5-0.5B-Instruct | -0.0059 | 0.0000 |
+| `cheat_cross_family_similar` | SmolLM2-1.7B-Instruct | -0.0018 | 0.0000 |
+
+**Aggregate:**
+- False positive rate (honest rejected): **0.0000**
+- True positive rate (dishonest caught): **1.0000**
+- Overall accuracy: **1.0000**
+
+Perfect separation across all 1,500 samples at a fixed `cos_threshold = 0.99`. The two cheating scenarios test the two attack types that matter: same-family downsizing (which saves ~3× compute by swapping a smaller model from the same family) and cross-family substitution. Both land near zero cosine similarity as predicted — different hidden-state manifolds project through independent per-model `P` matrices to effectively independent 64-dim vectors.
+
+## Running the evaluation
+
+The eval scales linearly with (prompts × scenarios × model-size), so we run it on **[Modal](https://modal.com)** for parallel GPU execution rather than a laptop. The scripts in `scripts/` are self-contained Modal apps:
+
+```bash
+pip install modal
+modal setup  # one-time auth
+
+modal run scripts/experiment_cross_family.py
+```
+
+Each scenario's generation is dispatched to its own A10G worker via `generate_responses.spawn(...)`, so total wall-clock is roughly the slowest single-scenario run rather than their sum. A shared Modal `Volume` caches HuggingFace model weights across runs so the second invocation skips downloads entirely.
+
+Full run on A10G (3 scenarios × 500 prompts × 128 new tokens, including verification): **~45 minutes** wall-clock after model weights are cached.
+
 ## Status
 
 Early design / work-in-progress. Contributions, critiques, and attacks on the protocol are welcome.
