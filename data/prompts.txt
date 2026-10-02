@@ -1,0 +1,500 @@
+Explain photosynthesis to a middle school student.
+Explain gravity to a middle school student.
+Explain the water cycle to a middle school student.
+Explain electricity to a middle school student.
+Explain DNA to a middle school student.
+Explain evolution to a middle school student.
+Explain the solar system to a middle school student.
+Explain plate tectonics to a middle school student.
+Explain the immune system to a middle school student.
+Explain the greenhouse effect to a middle school student.
+Explain sound waves to a middle school student.
+Explain magnetism to a middle school student.
+Explain the food chain to a middle school student.
+Explain weather patterns to a middle school student.
+Explain the human heart to a middle school student.
+Write a short story about a lighthouse keeper who finds a message in a bottle.
+Write a short story about a robot learning to paint.
+Write a short story about a child meeting a dragon in the forest.
+Write a short story about a space traveler stranded on a tiny moon.
+Write a short story about a thief with a change of heart.
+Write a short story about a mathematician who dreams in equations.
+Write a short story about an old clock that controls time.
+Write a short story about a baker whose bread grants wishes.
+Write a short story about two friends on a cross-country road trip.
+Write a short story about a librarian guarding a forbidden book.
+Write a short story about a cat who runs a detective agency.
+Write a short story about a town where it rains flowers once a year.
+Describe a sunset over the ocean using only sensory details.
+Describe a thunderstorm rolling across a prairie using only sensory details.
+Describe the inside of an old bookstore using only sensory details.
+Describe a bustling morning farmer's market using only sensory details.
+Describe a quiet snowfall in a forest using only sensory details.
+Describe a fireworks show from a rooftop using only sensory details.
+Describe a tea ceremony using only sensory details.
+Describe the first cup of coffee of the day using only sensory details.
+Describe a hot bowl of ramen using only sensory details.
+Describe a cold mountain stream in summer using only sensory details.
+Describe walking through a greenhouse using only sensory details.
+Describe a crackling fireplace in winter using only sensory details.
+Give three tips for improving sleep quality.
+Give three tips for learning a new language.
+Give three tips for writing cleaner code.
+Give three tips for staying focused while studying.
+Give three tips for making better coffee at home.
+Give three tips for running your first 5k.
+Give three tips for cooking rice perfectly.
+Give three tips for giving a great toast.
+Give three tips for negotiating a salary.
+Give three tips for taking better photos with a phone.
+Give three tips for building a daily reading habit.
+Give three tips for being a better listener.
+Give three tips for staying hydrated.
+Give three tips for designing a resume.
+Give three tips for handling a difficult conversation.
+Compare and contrast coffee and tea.
+Compare and contrast cats and dogs as pets.
+Compare and contrast paper books and e-books.
+Compare and contrast biking and running.
+Compare and contrast TCP and UDP.
+Compare and contrast SQL and NoSQL databases.
+Compare and contrast React and Vue.
+Compare and contrast renting and owning a home.
+Compare and contrast pop and classical music.
+Compare and contrast freelance and full-time work.
+Compare and contrast ocean and river fishing.
+Compare and contrast coding in Python and Rust.
+Write a haiku about a thunderstorm over an open field.
+Write a haiku about a cat napping in a sunbeam.
+Write a haiku about the first snowfall of winter.
+Write a haiku about a late-night subway ride.
+Write a haiku about cherry blossoms in April.
+Write a haiku about a cup of coffee at dawn.
+Write a haiku about an abandoned beach in autumn.
+Write a haiku about a hummingbird at a feeder.
+Write a haiku about an old train station.
+Write a haiku about a city rooftop at night.
+Give a one-paragraph summary of the plot of Hamlet.
+Give a one-paragraph summary of the French Revolution.
+Give a one-paragraph summary of the Industrial Revolution.
+Give a one-paragraph summary of the discovery of penicillin.
+Give a one-paragraph summary of the Apollo 11 moon landing.
+Give a one-paragraph summary of the fall of the Berlin Wall.
+Give a one-paragraph summary of the invention of the printing press.
+Give a one-paragraph summary of the development of the internet.
+Give a one-paragraph summary of the theory of relativity in plain English.
+Give a one-paragraph summary of the plot of Pride and Prejudice.
+Give a one-paragraph summary of the plot of The Odyssey.
+Give a one-paragraph summary of the formation of the European Union.
+Explain how a hash table works in simple terms.
+Explain how public-key cryptography works in simple terms.
+Explain how GPS works in simple terms.
+Explain how regenerative braking works in simple terms.
+Explain how compound interest works in simple terms.
+Explain how machine learning works in simple terms.
+Explain how blockchain works in simple terms.
+Explain how DNS works in simple terms.
+Explain how cloud storage works in simple terms.
+Explain how noise-cancelling headphones works in simple terms.
+Explain how touchscreens works in simple terms.
+Explain how solar panels works in simple terms.
+Explain how a refrigerator works in simple terms.
+Explain how a jet engine works in simple terms.
+Explain how a microwave oven works in simple terms.
+Write a motivational message for someone who is starting a new job.
+Write a motivational message for someone who is about to run a marathon.
+Write a motivational message for someone who is learning to code.
+Write a motivational message for someone who is applying to college.
+Write a motivational message for someone who is going through a tough breakup.
+Write a motivational message for someone who is quitting smoking.
+Write a motivational message for someone who is launching a startup.
+Write a motivational message for someone who is performing on stage for the first time.
+Write a motivational message for someone who is moving to a new country.
+Write a motivational message for someone who is learning to drive.
+Write a motivational message for someone who is going back to school as an adult.
+Write a motivational message for someone who is recovering from an injury.
+List five healthy snack ideas.
+List five fun indoor activities for a rainy weekend.
+List five productivity habits for remote workers.
+List five beginner-friendly houseplants.
+List five cities worth visiting in Europe.
+List five classic sci-fi novels.
+List five mobile apps worth paying for.
+List five cheap meals that scale to feed a family.
+List five ways to reduce household energy use.
+List five beginner yoga poses.
+List five ways to meet new people as an adult.
+List five books that changed how you think.
+Describe a day in the life of a park ranger in Yosemite.
+Describe a day in the life of a Formula 1 pit crew member.
+Describe a day in the life of a baker in a small French village.
+Describe a day in the life of a teacher at a one-room schoolhouse.
+Describe a day in the life of a lighthouse keeper in Nova Scotia.
+Describe a day in the life of a submarine commander.
+Describe a day in the life of a vet at a city shelter.
+Describe a day in the life of a botanist studying rainforests.
+Describe a day in the life of an air traffic controller.
+Describe a day in the life of a radio DJ on the night shift.
+Describe a day in the life of a street food vendor in Bangkok.
+Describe a day in the life of a goat farmer in the Alps.
+Write a product description for a smart water bottle that tracks hydration.
+Write a product description for a backpack with a built-in solar charger.
+Write a product description for a smart cutting board that suggests recipes.
+Write a product description for a mug that keeps coffee at the perfect temperature.
+Write a product description for a pair of noise-cancelling earbuds for runners.
+Write a product description for a journal that nudges daily reflection.
+Write a product description for a reusable grocery bag that folds into a keychain.
+Write a product description for a desk lamp that mimics daylight cycles.
+Write a product description for a travel pillow with built-in headphones.
+Write a product description for a thermal cooking pot for slow meals.
+Write a product description for a yoga mat with alignment guides.
+Write a product description for a toothbrush that tracks brushing habits.
+Write a brief dialogue between a cat and a vacuum cleaner.
+Write a brief dialogue between the moon and a satellite dish.
+Write a brief dialogue between a kettle and a coffee machine on a slow morning.
+Write a brief dialogue between two mirrors facing each other for the first time.
+Write a brief dialogue between a lighthouse and a passing ship.
+Write a brief dialogue between an umbrella and the rain.
+Write a brief dialogue between a chess piece and a chess board.
+Write a brief dialogue between two trees in a quiet forest.
+Write a brief dialogue between a bike and the road it travels.
+Write a brief dialogue between a book and the reader who finished it.
+Explain the difference between a stock and a bond in simple terms.
+Explain the difference between a virus and bacteria in simple terms.
+Explain the difference between weather and climate in simple terms.
+Explain the difference between AC and DC electricity in simple terms.
+Explain the difference between cash and debit payments in simple terms.
+Explain the difference between RAM and disk storage in simple terms.
+Explain the difference between cardio and strength training in simple terms.
+Explain the difference between a lease and a mortgage in simple terms.
+Explain the difference between a bakery and a patisserie in simple terms.
+Explain the difference between jazz and blues in simple terms.
+Explain the difference between a lake and a pond in simple terms.
+Explain the difference between a programming language compiler and interpreter in simple terms.
+Describe the taste and texture of a ripe mango to someone who has never had it.
+Describe the taste and texture of fresh sashimi to someone who has never had it.
+Describe the taste and texture of sourdough bread with butter to someone who has never had it.
+Describe the taste and texture of aged cheddar cheese to someone who has never had it.
+Describe the taste and texture of a cup of matcha to someone who has never had it.
+Describe the taste and texture of pomegranate seeds to someone who has never had it.
+Describe the taste and texture of a hot bowl of pho to someone who has never had it.
+Describe the taste and texture of freshly fried churros to someone who has never had it.
+Describe the taste and texture of homemade pesto on pasta to someone who has never had it.
+Describe the taste and texture of a soft French omelette to someone who has never had it.
+Describe the taste and texture of stone-ground grits to someone who has never had it.
+Describe the taste and texture of a bite of tiramisu to someone who has never had it.
+What are some good strategies for learning a new programming language?
+What are some good strategies for debugging a tricky bug?
+What are some good strategies for sticking to a fitness routine?
+What are some good strategies for building a reading habit?
+What are some good strategies for saving for a big purchase?
+What are some good strategies for giving constructive feedback?
+What are some good strategies for running effective meetings?
+What are some good strategies for finding a mentor?
+What are some good strategies for writing a technical blog post?
+What are some good strategies for preparing for a job interview?
+What are some good strategies for reading research papers efficiently?
+What are some good strategies for starting a side project?
+Write a brief poem about autumn leaves in a quiet park.
+Write a brief poem about a child flying a kite.
+Write a brief poem about the first rain of the monsoon.
+Write a brief poem about a wave breaking at midnight.
+Write a brief poem about a candle burning in an empty room.
+Write a brief poem about a sparrow at the window.
+Write a brief poem about a bus station at dawn.
+Write a brief poem about a potter at the wheel.
+Write a brief poem about a fisherman waiting on the pier.
+Write a brief poem about an empty swing in a schoolyard.
+Give me a one-paragraph pep talk for someone about to perform on stage.
+Give me a one-paragraph pep talk for someone nervous about public speaking.
+Give me a one-paragraph pep talk for someone trying to run their first marathon.
+Give me a one-paragraph pep talk for someone starting therapy for the first time.
+Give me a one-paragraph pep talk for someone launching their first product.
+Give me a one-paragraph pep talk for someone writing their first novel.
+Give me a one-paragraph pep talk for someone learning a difficult instrument.
+Give me a one-paragraph pep talk for someone about to leave home for college.
+Give me a one-paragraph pep talk for someone stepping into a leadership role for the first time.
+Give me a one-paragraph pep talk for someone doing a cold plunge in the morning.
+Write a brief how-to for making French press coffee.
+Write a brief how-to for folding a fitted sheet.
+Write a brief how-to for setting up a tent.
+Write a brief how-to for changing a bike tire.
+Write a brief how-to for frying the perfect egg.
+Write a brief how-to for making risotto.
+Write a brief how-to for sharpening a kitchen knife.
+Write a brief how-to for writing a cover letter.
+Write a brief how-to for giving a two-minute lightning talk.
+Write a brief how-to for doing a basic deadlift.
+Write a brief how-to for wrapping a gift neatly.
+Write a brief how-to for caring for a new houseplant.
+Describe the concept of entropy, including why it matters.
+Describe the idea of opportunity cost, including why it matters.
+Describe Bayes' theorem in plain language, including why it matters.
+Describe the Pareto principle, including why it matters.
+Describe diminishing returns, including why it matters.
+Describe the concept of leverage in finance, including why it matters.
+Describe the Dunning–Kruger effect, including why it matters.
+Describe cognitive dissonance, including why it matters.
+Describe the sunk cost fallacy, including why it matters.
+Describe the observer effect in physics, including why it matters.
+Describe the Fermi paradox, including why it matters.
+Describe the lindy effect, including why it matters.
+Write a scene where two strangers share an umbrella on a rainy street.
+Write a scene where a child meets their new puppy for the first time.
+Write a scene where an astronaut sees Earth from orbit for the first time.
+Write a scene where a chef serves their first restaurant customer.
+Write a scene where a grandparent teaches a grandchild to bake.
+Write a scene where a traveler misses their last train home.
+Write a scene where a scientist realizes an experiment has worked.
+Write a scene where two musicians play together for the first time.
+Write a scene where a hiker reaches a mountain summit at sunrise.
+Write a scene where a letter arrives thirty years late.
+Give me a quick explainer on why airplanes stay in the air.
+Give me a quick explainer on why the sky is blue.
+Give me a quick explainer on why ocean water is salty.
+Give me a quick explainer on why the sun looks red at sunset.
+Give me a quick explainer on how reflections work in a mirror.
+Give me a quick explainer on why magnets attract iron.
+Give me a quick explainer on why bread rises when baked.
+Give me a quick explainer on why ice floats on water.
+Give me a quick explainer on why metals conduct electricity.
+Give me a quick explainer on why we see colors.
+What are the pros and cons of remote work for software engineers?
+Give me a recipe for a simple weeknight pasta dish using pantry staples.
+Give me a recipe for a vegetarian chili that could feed four people.
+Describe how a modern electric car's regenerative braking system works.
+What are some healthy snack options for a long workday?
+Explain how bees communicate the location of flowers to each other.
+Write a motivational quote about perseverance that could appear in a book.
+What are the stages of the water cycle, in order?
+What are the most common beginner mistakes when learning to play guitar?
+Describe how a sommelier describes a glass of red wine.
+What are three signs a sourdough starter is healthy?
+Explain the Monty Hall problem in plain language.
+What is the difference between accuracy, precision, and recall?
+Give me three underrated kitchen tools worth owning.
+Describe how to brew tea properly for a non-tea drinker.
+Explain why we yawn.
+Explain why onions make us cry when chopped.
+Describe the sound of a city waking up at dawn.
+What are some signs of a well-run meeting?
+What are some signs of a dysfunctional codebase?
+Give me a mini pep talk for someone sending their first PR.
+Explain the concept of 'flow state' to someone who hasn't heard of it.
+Describe what makes a great user-interface, with examples.
+Describe what makes a great engineering manager.
+What are some good interview questions to ask a hiring manager?
+Write a short story in exactly three sentences about a lost key.
+Write a short story in exactly three sentences about a traveling bird.
+Describe the feeling of finishing a long creative project.
+Explain the Fibonacci sequence and where it appears in nature.
+What are some practical ways to learn to read music as an adult?
+Write a short description of how fermentation works.
+Give a plain-language explanation of what causes the tides.
+Describe how a seed becomes a tree, step by step.
+Write a 60-second script introducing a new coffee shop.
+Explain the idea of 'opportunity cost' using a concrete example.
+Explain 'the long tail' in business, with examples.
+What are three traits of a world-class product designer?
+Describe the smell of a bookstore to someone who's never been to one.
+Write a short note of encouragement to someone recovering from burnout.
+Explain the difference between weather forecasting and climate modeling.
+What are good ways to pace yourself during a long day of meetings?
+Explain how a simple fridge magnet actually works.
+Give me a brief history of the espresso machine.
+Explain how caching makes websites faster.
+Describe how a database index speeds up queries.
+Explain the difference between static and dynamic typing in programming.
+What are good ways to track personal reading habits?
+Describe the difference between a dolphin and a porpoise.
+Describe the difference between a crocodile and an alligator.
+Explain why bread rises differently at high altitude.
+What's one habit worth building in your twenties?
+What's one habit worth building in your forties?
+Explain how a camera lens focuses light.
+Explain how a lithium-ion battery stores energy.
+Describe a simple morning stretch routine for desk workers.
+Write a brief story told entirely in grocery list form.
+Explain the concept of a public API using a restaurant analogy.
+Describe how a basic traffic light intersection coordinates cars.
+What are three questions to ask yourself before quitting a job?
+Explain how a hot air balloon lifts off the ground.
+Describe the smell of fresh basil to someone unfamiliar with it.
+Explain the term 'overfitting' in machine learning without jargon.
+Explain what 'gradient descent' means in simple terms.
+Write a short apology letter from a cat to its owner.
+Write a short gratitude note from a tree to the forest.
+Describe the feeling of walking home late at night in winter.
+Explain how to choose a running shoe for beginners.
+Give me three quick vegetarian lunch ideas.
+Give me three quick breakfast ideas that take under five minutes.
+Explain the role of a technical writer in a software team.
+Explain the role of a product manager in a software team.
+What is a healthy way to receive critical feedback?
+What is a healthy way to give critical feedback?
+Write a short description of a town where it only rains at night.
+Write a short description of a shop that sells memories.
+Explain how an escalator keeps the handrail synchronized with the steps.
+Describe the quietest place you can imagine, in detail.
+Describe the loudest place you can imagine, in detail.
+Explain why some foods taste better the next day.
+Give me a simple framework for making better decisions under uncertainty.
+What are good signs that a software project is in trouble?
+What are good signs that a software project is healthy?
+Write a short poem about a stray cat finding a home.
+Describe how an orchestra tunes before a performance.
+Explain what a 'test harness' is to someone who has never written tests.
+Explain idiomatically what 'yak shaving' means in programming.
+Give me a brief guide to tipping while traveling in Japan.
+Give me a brief guide to tipping while traveling in the US.
+Describe how a jazz quartet decides who solos next.
+Explain the concept of 'technical debt' using a house metaphor.
+Write a letter from a distant planet to Earth.
+Write a note to your future self about something you learned today.
+Give me a short description of a surprising wedding tradition.
+Explain how a sommelier is trained.
+What are three questions to ask before adopting a dog?
+Give three low-cost ways to make a small apartment feel bigger.
+Describe how a chess grandmaster prepares for a tournament.
+Explain how to recover from a bad night of sleep.
+Explain how to recover from a difficult work week.
+Write a brief first-person account of being inside a snow globe.
+Write a brief first-person account of being a lost sock.
+Explain the concept of 'eventual consistency' in distributed systems.
+Explain the difference between vertical and horizontal scaling.
+What are three things to look for in a well-written technical doc?
+Describe how a wristwatch keeps time with such accuracy.
+Describe how an airplane's black box survives a crash.
+Write a short reflection on the difference between confidence and arrogance.
+Write a short reflection on the difference between curiosity and nosiness.
+Explain how to properly season a cast-iron skillet.
+Explain how to properly brew pour-over coffee.
+Describe a quiet evening in a Tokyo back alley.
+Describe a bustling afternoon at a Marrakech market.
+Explain how a chef develops a new menu.
+Explain how a game designer tests a new mechanic.
+Write a short pep talk for someone whose code just failed a demo.
+Write a short pep talk for someone whose startup pitch didn't land.
+Describe how birds navigate during migration.
+Describe how whales communicate across huge distances.
+Explain how to spot a well-made leather bag.
+Explain how to spot a well-made knife.
+Describe what makes a great teacher memorable, with examples.
+Describe what makes a great mentor valuable, with examples.
+Write a short story about a world where everyone writes with fountain pens.
+Write a short story about a village where everyone shares a single memory.
+Explain how an espresso shot differs from drip coffee at the chemical level.
+Explain how a greenhouse stays warm in winter.
+Describe the difference between a cold-brew and iced coffee.
+Describe the difference between miso and shoyu ramen broths.
+Explain how to graciously decline a social invitation.
+Explain how to politely re-engage a stalled project.
+Write a short monologue from a coat left on a chair at a diner.
+Write a short monologue from a park bench at the end of autumn.
+Describe how a sommelier chooses a wine for a specific meal.
+Describe how a baker decides when their sourdough is proofed enough.
+Explain, with examples, why constraints often lead to creativity.
+Explain, with examples, why premature optimization is risky.
+What are three signs it's time to leave a job?
+What are three signs it's a good time to start a company?
+Explain how a seed germinates underground.
+Explain how a hummingbird hovers in place.
+Describe how a bakery smells on a winter morning.
+Describe how a fish market smells at sunrise.
+Write a short reflection on the difference between knowledge and wisdom.
+Write a short reflection on the difference between kindness and politeness.
+Give three ways to make a lecture more engaging.
+Give three ways to make a stand-up meeting more useful.
+Explain the concept of 'default settings' using everyday examples.
+Explain the concept of 'latent variables' without using jargon.
+Write a short description of a village where no one has ever seen the sea.
+Write a short description of a city where every building is a bookstore.
+Explain how a key cuts into a lock to open it.
+Explain how a zipper's teeth actually interlock.
+Describe how a kite catches the wind to stay aloft.
+Describe how a sailboat tacks against the wind.
+Write a brief ode to a well-worn pair of boots.
+Write a brief ode to a cast-iron pan passed down for generations.
+Give me a quick explainer on why the Earth has seasons.
+Give me a quick explainer on how daylight saving time works.
+Explain how to pick a good watermelon at a grocery store.
+Explain how to pick a good avocado at a grocery store.
+Describe how a parade of fireflies looks at dusk.
+Describe how a flock of starlings moves at twilight.
+Explain why onions have layers.
+Explain why cats purr.
+Write a short story about a town where everyone keeps bees.
+Write a short story about a tailor who sews storm clouds.
+Give three underrated tools for a home kitchen.
+Give three underrated tools for a home office.
+Describe the first ten minutes of a long train journey.
+Describe the final ten minutes of a long train journey.
+Explain how a wind turbine converts wind into electricity.
+Explain how a dam generates power.
+Write a short description of a forest after a long rain.
+Write a short description of a desert canyon at noon.
+Explain how a pastry chef makes puff pastry.
+Explain how a bartender builds a layered cocktail.
+Describe the quietest sound you can imagine, in detail.
+Describe the brightest color you've ever seen, in detail.
+Give three signs you're reading a well-structured novel.
+Give three signs you're reading a well-structured research paper.
+Explain how to care for a cast-iron skillet long term.
+Explain how to care for a leather wallet long term.
+Write a short monologue from a backpack at the end of a long trip.
+Write a short monologue from a kettle on a quiet Sunday morning.
+Describe how a pianist warms up before a concert.
+Describe how a dancer warms up before a performance.
+Explain the concept of 'graceful degradation' in software design.
+Explain the concept of 'defensive programming' with examples.
+Give me a short description of a tea shop that only opens on rainy days.
+Give me a short description of a bakery that bakes only one loaf per day.
+Explain how a lighthouse's rotating beam actually works.
+Explain how a compass needle orients itself to north.
+Describe a street at dawn in a city you've imagined.
+Describe a village square in the middle of a summer night.
+Write a short story about a cartographer who maps forgotten things.
+Write a short story about a boat that only sails in dreams.
+Give three unexpected uses for a cast-iron skillet.
+Give three unexpected uses for a yoga mat.
+Explain how a hot water bottle keeps you warm overnight.
+Explain how a down jacket traps body heat.
+Describe how a glassblower shapes molten glass.
+Describe how a potter centers clay on a wheel.
+Write a brief reflection on a time you learned something the hard way.
+Write a brief reflection on a time you were pleasantly surprised.
+Explain the concept of 'write-ahead logging' in databases, simply.
+Explain the concept of 'back pressure' in streaming systems, simply.
+Give three tips for building a meaningful personal library.
+Give three tips for curating a satisfying music playlist.
+Describe a quiet seaside town in the off-season.
+Describe a mountain village during a snowstorm.
+Explain how a submarine controls its depth.
+Explain how an elevator decides which floor to stop at next.
+Write a short description of an orchard right before harvest.
+Write a short description of a vineyard right after rain.
+Explain how a sommelier matches wine with a cheese course.
+Explain how a chef chooses a side dish for a main course.
+Describe the sound of a train arriving at a small station.
+Describe the sound of a market just before closing time.
+Give three overlooked skills every traveler should practice.
+Give three overlooked skills every manager should practice.
+Explain how a photograph's depth of field is created.
+Explain how a watercolor painting captures light.
+Write a short reflection on the difference between resting and recovering.
+Write a short reflection on the difference between learning and memorizing.
+Describe a childhood kitchen in careful sensory detail.
+Describe a grandparent's living room in careful sensory detail.
+Explain how fermentation produces sourdough bread's tangy flavor.
+Explain how aging develops a cheese's flavor.
+Write a short story about a librarian who hears books whispering at night.
+Write a short story about a cobbler who repairs stolen shoes anonymously.
+Give three signs a startup has strong product-market fit.
+Give three signs a side project is worth turning into a business.
+Explain how a beehive stays warm in the winter.
+Explain how an ant colony coordinates foraging routes.
+Describe a weekly farmers' market from a vendor's perspective.
+Describe a weekly farmers' market from a shopper's perspective.
+Write a short description of an attic full of forgotten holiday decorations.
+Write a short description of a basement workshop in heavy use.
+Explain how to lay out a weekly schedule for deep work.

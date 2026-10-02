@@ -1,9 +1,9 @@
 models:
-  - id: meta-llama/Llama-3.2-1B-Instruct
-    dtype: bfloat16
-  - id: meta-llama/Llama-3.2-3B-Instruct
-    dtype: bfloat16
   - id: Qwen/Qwen2.5-0.5B-Instruct
+    dtype: bfloat16
+  - id: Qwen/Qwen2.5-1.5B-Instruct
+    dtype: bfloat16
+  - id: HuggingFaceTB/SmolLM2-1.7B-Instruct
     dtype: bfloat16
 
 sampling:
@@ -11,3 +11,7 @@ sampling:
   top_p: 1.0
   top_k: 0
   max_new_tokens: 512
+
+fingerprint:
+  proj_dim: 64
+  cos_threshold: 0.99

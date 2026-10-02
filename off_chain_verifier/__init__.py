@@ -1,3 +1,3 @@
-from .verifier import VerifierPipeline
+from .fingerprint_pipeline import FingerprintVerifier
 
-__all__ = ["VerifierPipeline"]
+__all__ = ["FingerprintVerifier"]

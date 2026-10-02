@@ -1,6 +1,6 @@
 # dInference
 
-A decentralized AI inference marketplace on Solana. Independent operators run open-source LLMs off-chain and get paid per token. Correctness is enforced by an optimistic rollup with a statistical sampling check at the heart of verification.
+A decentralized AI inference marketplace on Solana. Independent operators run open-source LLMs off-chain and get paid per token. Correctness is enforced by an optimistic rollup with an **activation fingerprint** check at the heart of verification.
 
 ## Overview
 
@@ -8,19 +8,27 @@ Users submit prompts on-chain and pay per token. Any node with a GPU can registe
 
 ## Why optimistic?
 
-Running an LLM twice for every request would double the cost of the network. Instead, we only re-run inference when someone pays to challenge, and we make challenges reliable through a single statistical test on the provider's output:
+Running an LLM twice for every request would double the cost of the network. Instead, we only re-run inference when someone pays to challenge, and we make challenges reliable through a single lightweight proof the provider publishes alongside every response:
 
-- **Selected-token probability test** — the probabilities the real model assigns to the tokens the provider actually selected must, in aggregate, match what honest sampling would produce. Wrong-model, greedy-when-sampling, temperature tampering, and token injection all distort this distribution in detectable ways.
+- **Activation fingerprint** — a compact vector derived from the model's final-layer hidden states as it generated the response. On challenge, the verifier recomputes it and checks a cosine-similarity threshold.
 
-We rely on a statistical check rather than exact-token replay because GPU nondeterminism (different kernels, batch sizes, dtypes, flash-attn versions) makes bit-exact reproduction unreliable between honest providers and honest verifiers. The protocol is deliberately **loose at the token level and tight at the distribution level**.
+We rely on a hidden-state fingerprint rather than exact-token replay because GPU nondeterminism (different kernels, batch sizes, dtypes, flash-attn versions) makes bit-exact reproduction unreliable between honest providers and honest verifiers.
 
 ## Protocol
 
 ### 1. Inference
 
-- The on-chain program maintains a **rotating seed** that advances on a fixed schedule, used for request scheduling and provider rotation.
-- The provider runs the requested model on the prompt using the protocol-fixed sampling parameters (temperature, top-p, top-k) and its own randomness.
-- The provider returns the response on-chain.
+- The on-chain program maintains a **rotating seed** that advances on a fixed schedule. Each inference request is bound to the current seed.
+- The provider runs the requested model on the prompt using the protocol-fixed sampling parameters.
+- During generation, for each new token the provider captures the final-layer hidden state `h_i`, projects it through a seeded random matrix `P` (derived from the request's seed), and accumulates the result:
+
+  ```
+  f = Σ_i h_i · P
+  ```
+
+  where `P ∈ R^(hidden_dim × proj_dim)` is sampled from the per-request seed.
+
+- The provider returns `(response, fingerprint f)` on-chain.
 
 ### 2. Challenge window
 
@@ -28,20 +36,13 @@ The response is treated as correct unless a user files a challenge within the wi
 
 ### 3. Verification
 
-On challenge, the `(prompt, response)` pair is dispatched to a committee of **verifiers**. Each verifier:
+On challenge, the `(prompt, response, seed, fingerprint)` tuple is dispatched to a committee of **verifiers**. Each verifier:
 
-- Runs the model **once** on the prompt (teacher-forcing the provider's response) to recover the per-position distributions `p_i` over the vocabulary.
-- For each position, reads off `q_i = p_i(t_i)` — the probability the real model assigned to the token the provider actually selected.
-- Under honest sampling with the mandated parameters, `{q_1, ..., q_N}` follows a known distribution: the **size-biased distribution** of the `p_i`'s (the probability of selecting a token with mass `p` is itself `p`). The verifier computes the expected distribution directly from the recomputed `p_i`'s and KS-tests the empirical `{q_i}` against it.
+- Teacher-forces the response through the claimed model in a single forward pass, capturing the final-layer hidden state at each response position.
+- Rebuilds `P` from the per-request seed and recomputes `f'` by the same projection-and-sum procedure.
+- Checks cosine similarity: `cos(f, f') > τ` (e.g. `τ = 0.99`). Pass → honest. Fail → provider slashed.
 
-What this catches:
-
-- **Wrong model.** The provider's tokens were plausible under a different model's distribution, so they're frequently low-probability under the real model → `q_i`'s pile up near zero.
-- **Greedy-when-sampling.** `q_i = max_k p_i(k)` every time → distribution pushed hard to the top.
-- **Temperature / top-k tampering.** Sharper effective distributions bias `q_i`'s high; flatter ones bias them low.
-- **Token injection.** Injected tokens have tiny `q_i`'s and show up as low-tail outliers.
-
-GPU noise perturbs individual `p_i` values only slightly, and the KS test aggregates over the full response, so the test is noise-robust by construction. A minimum response length is enforced for challenges so the KS test has adequate power.
+Why cosine similarity: scale-invariant, bounded in `[-1, 1]`, insensitive to response length and dtype magnitude. Honest providers hit `cos ≈ 1.0` (small GPU-noise drift). Different-model attackers land near zero or negative.
 
 Verifiers reach **consensus**:
 - If the majority says the response is invalid → the provider is slashed, the challenger is rewarded.
@@ -61,28 +62,46 @@ This gives users a clean dial: pay more, land on a faster provider.
 
 | Actor | Offense | Penalty |
 |---|---|---|
-| Provider | Failed selected-token probability (KS) test | Stake slashed, challenger rewarded |
+| Provider | Fingerprint cosine similarity below threshold | Stake slashed, challenger rewarded |
 | Provider | Chronically below declared tok/s | Stake slashed |
 | Verifier | Voted with the losing minority | Stake slashed |
 | Challenger | Challenge rejected by consensus | Bond forfeited |
 
 ## Architecture decisions
 
-### Why a statistical check instead of a zero-knowledge proof?
+### Why a fingerprint check instead of a zero-knowledge proof?
 
-The obvious alternative to our KS test is a zero-knowledge proof of correct inference (zkML): the provider produces a cryptographic proof that they ran the exact claimed model on the prompt, and anyone can verify it in milliseconds.
-
-We deliberately chose not to go this route. **zkML proving slows inference by multiple orders of magnitude** — current state-of-the-art zkML systems for transformer inference run roughly 10³–10⁶× slower than native inference. For a decentralized *inference* marketplace, that's fatal: the whole value proposition is competitive tokens-per-second. A provider that generates 1 tok/s because it's producing a SNARK alongside each token is not a useful inference provider — users will go to centralized APIs and the network has no reason to exist.
+The obvious alternative is a zero-knowledge proof of correct inference (zkML): the provider produces a cryptographic proof that they ran the exact claimed model on the prompt. We deliberately don't go this route — **zkML proving slows inference by 10³–10⁶×**, which kills the whole value proposition of a decentralized inference marketplace. A provider that generates 1 tok/s because it's producing a SNARK alongside each token is not a useful inference provider.
 
 Our approach inverts the trade-off:
 
-- **Providers run at native speed.** No proving overhead. Tok/s is competitive with centralized providers.
-- **Verification is slow but rare.** Verifiers do a real forward pass, which is expensive, but only on challenge. In the optimistic case (the vast majority of requests), no verification happens at all.
-- **The check is statistical, not cryptographic.** We accept that a sufficiently sophisticated and economically irrational attacker could in principle slip through. In exchange we get a protocol that's actually usable.
+- **Providers run at native speed.** The projection + sum per token is a few hundred microseconds of extra work and uses a hidden state the model already computes.
+- **Verification is slow but rare.** Verifiers do a single real forward pass only when challenged. In the optimistic case (the vast majority of requests), no verification happens at all.
+- **The check is statistical, not cryptographic.** We accept that a sophisticated attacker could in principle craft hidden states that project to a matching fingerprint. In exchange we get a protocol that's actually usable.
 
-The KS test is "loose" in the formal sense — it does not prove exact execution. But it is **tight against every economically rational attack**: smaller models, greedy decoding, temperature tampering, LM-head substitution, token injection. Any attack that would save the provider meaningful compute shows up in the `q_i` distribution. Attacks that don't save compute aren't worth running.
+### Why stop verification at the activation level?
 
-In short: zkML buys you cryptographic certainty at the cost of making the service unusable. We buy a usable service at the cost of statistical rather than cryptographic certainty. For an open inference marketplace, that's the right trade.
+A natural question is whether we should *also* verify sampling — that the provider used the mandated temperature / top-p / sampler, didn't greedy-decode, didn't tamper with the LM head. We prototyped a statistical sampling check (a KS test on the probabilities of selected tokens) and found that it works in principle but adds significant complexity and false-positive risk.
+
+More importantly, we concluded **sampling verification isn't needed for economic security.** Walk through what an attacker actually saves by tampering with sampling:
+
+| Attack | Compute saved | Worth catching? |
+|---|---|---|
+| Greedy instead of sampling | ~1% of per-token cost (skip softmax + multinomial draw) | No |
+| Lower temperature | Zero. Same forward pass, same softmax, same draw. | No |
+| Top-k / top-p tampering | Negligible. | No |
+| Smaller model | 2–100× cheaper per token | **Yes — fingerprint catches this** |
+| Not running the model at all | 100% | **Yes — fingerprint catches this** |
+
+The forward pass is >99% of per-token compute. Any attack that doesn't change the forward pass saves the attacker essentially nothing — so a rational provider has no economic incentive to tamper with sampling. The attacks with real payoff (wrong model, no model) all show up as a different hidden-state trajectory and get caught by the fingerprint.
+
+Stopping at the activation level therefore:
+
+- **Covers every economically rational attack** with a single, interpretable check.
+- **Avoids false positives** on honest providers (statistical sampling tests are sensitive to GPU nondeterminism, near-deterministic positions, and discrete-distribution artifacts).
+- **Keeps the protocol minimal** — one threshold (`cos_threshold`) rather than a battery of statistical tunables.
+
+If the threat model later expands to include adversarial *content* manipulation (e.g. biasing responses regardless of compute cost), sampling verification can be added as a second layer. For the economic-security use case, the fingerprint is sufficient.
 
 ## Status
 

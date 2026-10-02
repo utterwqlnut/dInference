@@ -1,3 +1,3 @@
-from .provider import ProviderInference
+from .fingerprint_pipeline import FingerprintProvider
 
-__all__ = ["ProviderInference"]
+__all__ = ["FingerprintProvider"]

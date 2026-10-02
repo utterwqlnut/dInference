@@ -2,3 +2,4 @@ transformers>=4.44
 torch>=2.3
 pyyaml>=6.0
 accelerate>=0.33
+pandas>=2.0
