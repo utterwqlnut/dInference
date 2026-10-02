@@ -1,0 +1,45 @@
+# Rust / Cargo
+target/
+Cargo.lock
+**/*.rs.bk
+
+# Anchor
+.anchor/
+test-ledger/
+.DS_Store
+
+# Node / TypeScript
+node_modules/
+dist/
+*.log
+yarn.lock
+package-lock.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Local secrets / keys (NEVER commit)
+**/*-keypair.json
+**/wallet.json
+.env
+.env.local
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Results from experiments (large CSVs, not source)
+results/*.csv
+
+# Build / cache
+*.pyc
+.pytest_cache/
+.cache/

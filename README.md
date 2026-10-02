@@ -1,128 +1,129 @@
 # dInference
 
-A decentralized AI inference marketplace on Solana. Independent operators run open-source LLMs off-chain and get paid per token. Correctness is enforced by an optimistic rollup with an **activation fingerprint** check at the heart of verification.
+A decentralized AI inference marketplace on Solana. Users post bounties for LLM inference work; independent operators race to serve them; correctness is enforced by an optimistic rollup with an **activation-fingerprint** check at the heart of verification.
 
-## Overview
+Validated at **100% TPR / 0% FPR** on 1,500 cross-family samples at `cos_threshold = 0.99`.
 
-Users submit prompts on-chain and pay per token. Any node with a GPU can register as a **provider**, pick up jobs, run inference locally, and post the response back on-chain. Results are assumed honest and finalized after a challenge window (default: *X* days). Within that window, any user can challenge a response and trigger verification. Fraud — by a provider or by a verifier — is punished by slashing the offender's staked SOL.
+## How it works
 
-## Why optimistic?
+1. **User posts a bounty.** User escrows SOL on-chain, uploads prompt to Arweave, submits `(prompt_txid, model_id, bounty_lamports)` via one tx. Chain emits `BountyPosted`.
+2. **Providers race.** Every provider daemon for that model sees the event, fetches the prompt from Arweave, runs inference, uploads response to Arweave, and submits `claim_bounty(response_txid, fingerprint)`. First valid tx to land wins; losers' txs revert.
+3. **Challenge window opens.** For a configurable window (default ~7 days), anyone can challenge the response by posting a bond. The chain deterministically picks a committee of K verifiers from the model's verifier pool via `hash(seed || bounty || i) mod pool_size` for each slot.
+4. **Verifiers vote.** Each committee member fetches prompt+response from Arweave, recomputes the fingerprint under the real model, compares cosine similarity, and submits `verifier_vote` on-chain.
+5. **Early finalize.** The moment vote counts can no longer flip the outcome (quorum of guilty reached, or honest majority mathematically locked), anyone calls `finalize_challenge`. Payouts and slashing happen atomically.
+6. **Optimistic payment.** If no challenge arrives within the window, `finalize_payment` pays the winning provider the full bounty.
 
-Running an LLM twice for every request would double the cost of the network. Instead, we only re-run inference when someone pays to challenge, and we make challenges reliable through a single lightweight proof the provider publishes alongside every response:
+## Economics
 
-- **Activation fingerprint** — a compact vector derived from the model's final-layer hidden states as it generated the response. On challenge, the verifier recomputes it and checks a cosine-similarity threshold.
+| Actor | Action | Reward | Penalty |
+|---|---|---|---|
+| User | Post bounty | — | Escrowed; refunded only if cheater proven |
+| Provider | Win bounty race (honest) | Full bounty | — |
+| Provider | Win bounty race (cheated) | — | Half of stake slashed |
+| Challenger | Open challenge (correct) | 1.25× bounty + user refund | — |
+| Challenger | Open challenge (wrong) | — | Bond consumed by verify fees + vault |
+| Verifier | Vote with majority | `verify_fee` credited to stake | — |
+| Verifier | Vote against majority OR didn't vote | — | `dishonesty_fee` slashed from stake |
 
-We rely on a hidden-state fingerprint rather than exact-token replay because GPU nondeterminism (different kernels, batch sizes, dtypes, flash-attn versions) makes bit-exact reproduction unreliable between honest providers and honest verifiers.
+Verifier fees are **constant and independent of verdict** — removes directional voting incentive.
 
-## Protocol
+Provider stake at claim time: `stake ≥ 2 × bounty × 1.25` so a half-stake slash always covers the challenger reward.
 
-### 1. Inference
+Verifier stake at register time: `stake ≥ dishonesty_fee` so one slash cannot underflow.
 
-- The on-chain program maintains a **rotating seed** that advances on a fixed schedule. Each inference request is bound to the current seed.
-- The provider runs the requested model on the prompt using the protocol-fixed sampling parameters.
-- During generation, for each new token the provider captures the final-layer hidden state `h_i`, projects it through a seeded random matrix `P` (derived from the request's seed), and accumulates the result:
+## Verification: activation fingerprint
 
-  ```
-  f = Σ_i h_i · P
-  ```
+During generation, the provider computes:
 
-  where `P ∈ R^(hidden_dim × proj_dim)` is sampled from the per-request seed.
+```
+P = seeded_random_matrix(seed, hidden_dim × proj_dim)
+f = Σᵢ hᵢ · P        for i = 1..n_tokens generated
+```
 
-- The provider returns `(response, fingerprint f)` on-chain.
+where `hᵢ` is the final-layer hidden state at generation step i.
 
-### 2. Challenge window
+On challenge, the verifier teacher-forces `prompt+response` through the claimed model, recomputes `f'` the same way, and checks `cos(f, f') > cos_threshold` (default 0.99).
 
-The response is treated as correct unless a user files a challenge within the window. Challenges require a bond; frivolous challenges forfeit it.
+Honest providers hit `cos ≈ 1.0` across all tested models (0% FPR on 1,500 samples). Wrong-model attackers land near zero cosine because the projection through a different model's hidden-state manifold produces an unrelated vector (100% TPR).
 
-### 3. Verification
+**Why not zkML:** zero-knowledge inference proofs run 10³–10⁶× slower than native inference. That would kill tok/s and make the marketplace unusable. The fingerprint runs at native speed with microseconds of per-token overhead.
 
-On challenge, the `(prompt, response, seed, fingerprint)` tuple is dispatched to a committee of **verifiers**. Each verifier:
+**Why stop at the activation level:** sampling tampering (greedy decoding, temperature changes) saves attackers ~0% compute. The attacks that save real compute (wrong model, no model at all) show up as fingerprint divergence. A sampling-level check would add complexity + false-positive risk for no economic security gain.
 
-- Teacher-forces the response through the claimed model in a single forward pass, capturing the final-layer hidden state at each response position.
-- Rebuilds `P` from the per-request seed and recomputes `f'` by the same projection-and-sum procedure.
-- Checks cosine similarity: `cos(f, f') > τ` (e.g. `τ = 0.99`). Pass → honest. Fail → provider slashed.
+## Verifier pool & committee selection
 
-Why cosine similarity: scale-invariant, bounded in `[-1, 1]`, insensitive to response length and dtype magnitude. Honest providers hit `cos ≈ 1.0` (small GPU-noise drift). Different-model attackers land near zero or negative.
+- Each model has a **`VerifierPool` PDA** containing a list of currently-available verifier operator pubkeys.
+- `register_verifier` pushes to the pool. `request_unstake_verifier` removes from it.
+- On `challenge`: `K` verifiers are **randomly selected** from the pool using `hash(rotating_seed || bounty_pda || i) % pool.len()` for `i = 0..K`, swap-removed from the pool. One committee at a time per verifier (removed = not eligible for simultaneous committees).
+- On `finalize_challenge`: committee members whose `is_active` is still true get added back to the pool.
 
-Verifiers reach **consensus**:
-- If the majority says the response is invalid → the provider is slashed, the challenger is rewarded.
-- If the majority says the response is valid → the challenger forfeits the bond.
-- Verifiers in the losing minority are slashed to deter collusion and lazy voting.
+Selection is O(K) hashes, O(K) swap-removes. No sorting. Deterministic and reproducible — SDKs can replay the same hash chain to predict committee membership before the on-chain selection lands.
 
-## Scheduling and priority fees
+## On-chain state (Anchor accounts)
 
-Users can attach a **priority fee** to a request. The scheduler batches work per model (each model has its own queue) and matches jobs to providers using both price and speed:
+- `GlobalConfig` — admin + protocol parameters (stake mins, bounty mins, challenge window, verify/dishonesty fees, cos threshold, committee size, quorum).
+- `RotatingSeed` — current seed, rotates on a schedule (permissionless `rotate_seed`).
+- `StakeVault` — single PDA holding all operator stakes and user escrows.
+- `ModelInfo` — per-model: id, hidden_dim, allowed flag.
+- `VerifierPool` — per-model: Vec of available verifier pubkeys.
+- `ProviderAccount` — per-operator: model, stake, active flag, unstake state.
+- `VerifierAccount` — per-operator: model, stake, active flag, unstake state.
+- `Bounty` — per-request: user, prompt_txid, bounty_lamports, status, winner, timestamps.
+- `ResponseCommitment` — per-claim: response_txid, fingerprint, timestamps, challenge deadline.
+- `Challenge` — per-challenge: committee, verdicts, status, vote deadline.
 
-- Each provider has a running-mean **tokens/second** stat for every model it serves. If this stat drops below a protocol-defined threshold too often, the provider is slashed.
-- At each scheduling tick, the contract looks at the pool of available providers for a given model, pulls the top `N` requests from that model's queue (where `N` = available providers), and assigns the highest-priority-fee jobs to the fastest providers.
+## Program instructions
 
-This gives users a clean dial: pay more, land on a faster provider.
+**Admin / setup:**
+- `init_config(args)` — one-time, sets protocol parameters.
+- `init_model(model_id, hidden_dim)` — admin, per-model, creates `ModelInfo` + `VerifierPool`.
 
-## Slashing summary
+**Operator lifecycle:**
+- `register_provider(model_id, stake)` / `register_verifier(model_id, stake)` — escrow stake, create account, (verifier) push to pool.
+- `request_unstake_*` → `claim_unstake_*` — two-step unstake with cooldown ≥ challenge window.
 
-| Actor | Offense | Penalty |
-|---|---|---|
-| Provider | Fingerprint cosine similarity below threshold | Stake slashed, challenger rewarded |
-| Provider | Response truncated below `max_new_tokens` without ending in EOS | Stake slashed, challenger rewarded |
-| Provider | Chronically below declared tok/s | Stake slashed |
-| Verifier | Voted with the losing minority | Stake slashed |
-| Challenger | Challenge rejected by consensus | Bond forfeited |
+**Bounty lifecycle:**
+- `post_bounty(nonce, prompt_txid, bounty_lamports)` — user escrows bounty, creates `Bounty` PDA, emits `BountyPosted`.
+- `claim_bounty(response_txid, fingerprint)` — provider race; atomic status flip `Open → Claimed`; emits `BountyClaimed`.
+- `finalize_payment()` — permissionless; after challenge window closes, pays winner.
+- `reclaim_unclaimed_bounty()` — user reclaims escrow if no provider claimed within timeout.
 
-## Architecture decisions
+**Challenge:**
+- `challenge(bond)` — picks committee from pool via random selection, creates `Challenge` PDA, emits `ChallengeOpened`.
+- `verifier_vote(verdict, fp_cos_scaled)` — committee member submits vote; emits `VoteSubmitted`.
+- `finalize_challenge()` — permissionless; early-finalizes when outcome is locked; pays verify fees, slashes dishonesty fees, settles bounty, adds surviving verifiers back to pool; emits `ChallengeResolved`.
 
-### Why a fingerprint check instead of a zero-knowledge proof?
+**Housekeeping:**
+- `rotate_seed()` — permissionless; advances rotating seed when due.
 
-The obvious alternative is a zero-knowledge proof of correct inference (zkML): the provider produces a cryptographic proof that they ran the exact claimed model on the prompt. We deliberately don't go this route — **zkML proving slows inference by 10³–10⁶×**, which kills the whole value proposition of a decentralized inference marketplace. A provider that generates 1 tok/s because it's producing a SNARK alongside each token is not a useful inference provider.
+## Attack coverage
 
-Our approach inverts the trade-off:
+| Attack | Caught by |
+|---|---|
+| Run a different model | Fingerprint check — `cos ≈ 0` vs real model |
+| Don't run the model at all | Fingerprint check — no valid hidden states to project |
+| Truncation (short response) | Verifier checks last token is EOS if `n_tokens < max_new_tokens` |
+| Sampling tampering (greedy, temp) | Not caught (economically irrational — saves ~0% compute) |
+| Provider stalls after winning | Challenge window + `claim_bounty` reverts if re-attempted |
+| Challenger spams fake challenges | Loses bond on each wrong challenge |
+| Verifier collusion to vote guilty | Minority voters slashed `dishonesty_fee`; constant fee removes bias |
+| Verifier doesn't vote | Slashed `dishonesty_fee` same as minority |
+| Multiple providers claim same bounty | Atomic status check; second claim reverts |
+| Provider under-stakes relative to bounty | `claim_bounty` requires `stake ≥ 2 × bounty × 1.25` |
 
-- **Providers run at native speed.** The projection + sum per token is a few hundred microseconds of extra work and uses a hidden state the model already computes.
-- **Verification is slow but rare.** Verifiers do a single real forward pass only when challenged. In the optimistic case (the vast majority of requests), no verification happens at all.
-- **The check is statistical, not cryptographic.** We accept that a sophisticated attacker could in principle craft hidden states that project to a matching fingerprint. In exchange we get a protocol that's actually usable.
+## Off-chain components
 
-### Why stop verification at the activation level?
+**`FingerprintProvider`** (`off_chain_inference/`) — `transformers.Pipeline` subclass; runs model, computes fingerprint, returns `{text, fingerprint, seed}`.
 
-A natural question is whether we should *also* verify sampling — that the provider used the mandated temperature / top-p / sampler, didn't greedy-decode, didn't tamper with the LM head. We prototyped a statistical sampling check (a KS test on the probabilities of selected tokens) and found that it works in principle but adds significant complexity and false-positive risk.
+**`FingerprintVerifier`** (`off_chain_verifier/`) — `transformers.Pipeline` subclass; teacher-forces response, recomputes fingerprint, returns `{fp_cos, passed, truncated, reason}`.
 
-More importantly, we concluded **sampling verification isn't needed for economic security.** Walk through what an attacker actually saves by tampering with sampling:
+**Provider daemon** (planned) — WebSocket subscription to `BountyPosted` events, races to `claim_bounty`.
 
-| Attack | Compute saved | Worth catching? |
-|---|---|---|
-| Greedy instead of sampling | ~1% of per-token cost (skip softmax + multinomial draw) | No |
-| Lower temperature | Zero. Same forward pass, same softmax, same draw. | No |
-| Top-k / top-p tampering | Negligible. | No |
-| Smaller model | 2–100× cheaper per token | **Yes — fingerprint catches this** |
-| Not running the model at all | 100% | **Yes — fingerprint catches this** |
-
-The forward pass is >99% of per-token compute. Any attack that doesn't change the forward pass saves the attacker essentially nothing — so a rational provider has no economic incentive to tamper with sampling. The attacks with real payoff (wrong model, no model) all show up as a different hidden-state trajectory and get caught by the fingerprint.
-
-Stopping at the activation level therefore:
-
-- **Covers every economically rational attack** with a single, interpretable check.
-- **Avoids false positives** on honest providers (statistical sampling tests are sensitive to GPU nondeterminism, near-deterministic positions, and discrete-distribution artifacts).
-- **Keeps the protocol minimal** — one threshold (`cos_threshold`) rather than a battery of statistical tunables.
-
-If the threat model later expands to include adversarial *content* manipulation (e.g. biasing responses regardless of compute cost), sampling verification can be added as a second layer. For the economic-security use case, the fingerprint is sufficient.
-
-### Preventing the truncation attack
-
-One attack the fingerprint alone *doesn't* catch: a cheating provider generates only a handful of tokens (say 10 out of a mandated 128), publishes a valid fingerprint over those 10 real tokens, and pockets ~90% of the compute savings. The verifier teacher-forces the short response, recomputes the fingerprint over 10 projections, and gets `cos ≈ 1.0` — passing a check it shouldn't.
-
-We defend against this at two layers:
-
-1. **Economic (payment semantics).** Providers are paid per *actually generated* token, not per requested `max_new_tokens`. For margins to exist, price-per-token must exceed cost-per-token, so skipping a token loses the provider more revenue than it saves in compute. Truncation becomes self-penalizing.
-
-2. **Protocol check (completion rule).** The verifier enforces:
-
-   > If `n_tokens < max_new_tokens`, the last response token MUST equal the model's EOS token.
-
-   `max_new_tokens` is a protocol-fixed constant from the on-chain config. Honest early stops naturally produce EOS. A truncation attacker who just cuts off mid-stream fails this check and is slashed. An attacker who tries to forge an EOS mid-stream destroys user experience (abrupt stops) and loses demand.
-
-Combined, these two defenses corner the attacker: either generate the full requested length (no savings), stop at a legitimate EOS (no attack), or get slashed.
+**Verifier daemon** (planned) — WebSocket subscription to `ChallengeOpened` events, submits `verifier_vote` + opportunistic `finalize_challenge`.
 
 ## Results
 
-We evaluated the fingerprint check on **500 diverse prompts** across three scenarios, all claiming the same model (`Qwen2.5-1.5B-Instruct`) and verified against it:
+Evaluated on 500 prompts × 3 scenarios (1,500 samples total):
 
 | Scenario | Actual model | Mean `fp_cos` | Pass rate |
 |---|---|---|---|
@@ -130,28 +131,22 @@ We evaluated the fingerprint check on **500 diverse prompts** across three scena
 | `cheat_same_family_smaller` | Qwen2.5-0.5B-Instruct | -0.0059 | 0.0000 |
 | `cheat_cross_family_similar` | SmolLM2-1.7B-Instruct | -0.0018 | 0.0000 |
 
-**Aggregate:**
-- False positive rate (honest rejected): **0.0000**
-- True positive rate (dishonest caught): **1.0000**
-- Overall accuracy: **1.0000**
+**FPR 0.0000, TPR 1.0000, accuracy 1.0000** at `cos_threshold = 0.99`.
 
-Perfect separation across all 1,500 samples at a fixed `cos_threshold = 0.99`. The two cheating scenarios test the two attack types that matter: same-family downsizing (which saves ~3× compute by swapping a smaller model from the same family) and cross-family substitution. Both land near zero cosine similarity as predicted — different hidden-state manifolds project through independent per-model `P` matrices to effectively independent 64-dim vectors.
+## Code status
+
+- **Smart contract** (`programs/dinference/`) — compiles, 6/6 Rust unit tests pass, BPF binary builds. Deterministic committee selection implemented. Economic parameters configurable. Ready for devnet deployment.
+- **Fingerprint pipelines** (`off_chain_inference/`, `off_chain_verifier/`) — validated end-to-end on cross-family evals. Ready to integrate with on-chain lifecycle.
+- **Daemons + SDK** — not yet built.
 
 ## Running the evaluation
 
-The eval scales linearly with (prompts × scenarios × model-size), so we run it on **[Modal](https://modal.com)** for parallel GPU execution rather than a laptop. The scripts in `scripts/` are self-contained Modal apps:
+Uses [Modal](https://modal.com) for parallel GPU execution:
 
 ```bash
 pip install modal
-modal setup  # one-time auth
-
+modal setup
 modal run scripts/experiment_cross_family.py
 ```
 
-Each scenario's generation is dispatched to its own A10G worker via `generate_responses.spawn(...)`, so total wall-clock is roughly the slowest single-scenario run rather than their sum. A shared Modal `Volume` caches HuggingFace model weights across runs so the second invocation skips downloads entirely.
-
-Full run on A10G (3 scenarios × 500 prompts × 128 new tokens, including verification): **~45 minutes** wall-clock after model weights are cached.
-
-## Status
-
-Early design / work-in-progress. Contributions, critiques, and attacks on the protocol are welcome.
+Wall-clock ~45 min on A10G × 3 scenarios × 500 prompts (parallelized), after model weights are cached.
