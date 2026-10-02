@@ -48,6 +48,7 @@ class FingerprintVerifier(Pipeline):
         self.proj_dim = int(cfg["fingerprint"]["proj_dim"])
         self.cos_threshold = float(cfg["fingerprint"]["cos_threshold"])
         self.max_new_tokens = int(cfg["sampling"]["max_new_tokens"])
+        self.model_type = allowed[model_id].get("type", "base")
 
         dtype = _DTYPES[allowed[model_id].get("dtype", "bfloat16")]
         device = (
@@ -79,8 +80,18 @@ class FingerprintVerifier(Pipeline):
         seed = int(inputs["seed"])
         claimed_fp = torch.tensor(inputs["fingerprint"], dtype=torch.float32)
 
-        prompt_ids = self.tokenizer(prompt, return_tensors="pt").input_ids[0]
-        full_ids = self.tokenizer(prompt + response, return_tensors="pt").input_ids[0]
+        if self.model_type == "instruct" and getattr(self.tokenizer, "chat_template", None):
+            out = self.tokenizer.apply_chat_template(
+                [{"role": "user", "content": prompt}],
+                add_generation_prompt=True,
+                return_tensors="pt",
+                return_dict=True,
+            )
+            prompt_ids = out["input_ids"][0]
+        else:
+            prompt_ids = self.tokenizer(prompt, return_tensors="pt").input_ids[0]
+        resp_ids = self.tokenizer(response, return_tensors="pt", add_special_tokens=False).input_ids[0]
+        full_ids = torch.cat([prompt_ids, resp_ids], dim=0)
         prompt_len = prompt_ids.shape[0]
 
         return {
@@ -125,10 +136,20 @@ class FingerprintVerifier(Pipeline):
         )
 
         # Completion-rule check: if the response is shorter than the protocol's
-        # max_new_tokens cap and doesn't end in EOS, the provider truncated to
-        # save compute. Slash.
+        # max_new_tokens cap and doesn't end in any valid stop token, the
+        # provider truncated to save compute. Instruct-tuned models often stop
+        # on multiple tokens (eos_token_id, <|im_end|>, etc.) — accept any of
+        # the model's declared stop tokens.
         last_token = int(input_ids[-1].item())
-        is_eos = (last_token == self.tokenizer.eos_token_id)
+        stop_token_ids = set()
+        if self.tokenizer.eos_token_id is not None:
+            stop_token_ids.add(int(self.tokenizer.eos_token_id))
+        gen_eos = getattr(self.model.generation_config, "eos_token_id", None)
+        if isinstance(gen_eos, list):
+            stop_token_ids.update(int(t) for t in gen_eos)
+        elif gen_eos is not None:
+            stop_token_ids.add(int(gen_eos))
+        is_eos = last_token in stop_token_ids
         truncated = (n_tokens < self.max_new_tokens) and not is_eos
 
         fp_ok = fp_cos > self.cos_threshold

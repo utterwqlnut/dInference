@@ -23,7 +23,13 @@ async def register(model_id: str, stake_lamports: int) -> str:
     try:
         log.info("registering verifier operator=%s model=%s stake=%d",
                  client.operator, model_id, stake_lamports)
-        result = await client.register_verifier(model_id, stake_lamports)
+        try:
+            result = await client.register_verifier(model_id, stake_lamports)
+        except Exception as e:
+            if "already in use" in str(e):
+                log.info("already registered — ok")
+                return "ALREADY_REGISTERED"
+            raise
         log.info("registered: %s", result.signature)
         return result.signature
     finally:

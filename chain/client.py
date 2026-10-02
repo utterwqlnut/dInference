@@ -35,7 +35,10 @@ log = logging.getLogger("chain")
 DEFAULT_RPC_URL = os.environ.get("SOLANA_RPC_URL", "https://api.devnet.solana.com")
 DEFAULT_WS_URL  = os.environ.get("SOLANA_WS_URL",  "wss://api.devnet.solana.com")
 
-_prog_id_str = os.environ.get("DINFERENCE_PROGRAM_ID", "11111111111111111111111111111111")
+_prog_id_str = os.environ.get(
+    "DINFERENCE_PROGRAM_ID",
+    "EDX9NGUiJGtGtLDTHbRCqLrb6Mbf7ES4eKuxumpfUyWq",
+)
 DINFERENCE_PROGRAM_ID = Pubkey.from_string(_prog_id_str)
 
 # ---- PDA seeds (must match constants.rs) ----

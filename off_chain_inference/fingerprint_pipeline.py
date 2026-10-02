@@ -38,6 +38,7 @@ class FingerprintProvider(Pipeline):
         self.model_id = model_id
         self.sampling = cfg["sampling"]
         self.proj_dim = int(cfg["fingerprint"]["proj_dim"])
+        self.model_type = allowed[model_id].get("type", "base")
 
         dtype = _DTYPES[allowed[model_id].get("dtype", "bfloat16")]
         device = (
@@ -72,11 +73,23 @@ class FingerprintProvider(Pipeline):
         seed = int(inputs["seed"])
         overrides = inputs.get("overrides") or {}
 
-        tok = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
+        if self.model_type == "instruct" and getattr(self.tokenizer, "chat_template", None):
+            out = self.tokenizer.apply_chat_template(
+                [{"role": "user", "content": prompt}],
+                add_generation_prompt=True,
+                return_tensors="pt",
+                return_dict=True,
+            )
+            input_ids = out["input_ids"].to(self.model.device)
+            attention_mask = out["attention_mask"].to(self.model.device)
+        else:
+            tok = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
+            input_ids = tok["input_ids"]
+            attention_mask = tok.get("attention_mask")
         return {
-            "input_ids": tok["input_ids"],
-            "attention_mask": tok.get("attention_mask"),
-            "prompt_len": tok["input_ids"].shape[1],
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
+            "prompt_len": input_ids.shape[1],
             "seed": seed,
             "overrides": overrides,
         }
@@ -127,7 +140,7 @@ class FingerprintProvider(Pipeline):
         fp = (last_hs @ P).sum(dim=0).cpu()                    # [proj_dim]
 
         gen_ids = sequences[0, prompt_len:]
-        text = self.tokenizer.decode(gen_ids, skip_special_tokens=True)
+        text = self.tokenizer.decode(gen_ids, skip_special_tokens=False)
 
         return {
             "text": text,

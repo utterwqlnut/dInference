@@ -24,8 +24,7 @@ use constants::*;
 use errors::DInferenceError;
 use state::*;
 
-// Placeholder; replace with the real program id after `anchor keys sync`.
-declare_id!("11111111111111111111111111111111");
+declare_id!("EDX9NGUiJGtGtLDTHbRCqLrb6Mbf7ES4eKuxumpfUyWq");
 
 #[program]
 pub mod dinference {
@@ -764,11 +763,12 @@ pub struct ClaimBounty<'info> {
     #[account(mut)] pub provider_operator: Signer<'info>,
     #[account(seeds = [CONFIG_SEED], bump = config.bump)]
     pub config: Account<'info, GlobalConfig>,
-    #[account(seeds = [PROVIDER_SEED, provider_operator.key().as_ref()], bump = provider.bump,
-              has_one = operator @ DInferenceError::OperatorInactive)]
+    #[account(
+        mut,
+        seeds = [PROVIDER_SEED, provider_operator.key().as_ref()], bump = provider.bump,
+        constraint = provider.operator == provider_operator.key() @ DInferenceError::OperatorInactive,
+    )]
     pub provider: Account<'info, ProviderAccount>,
-    /// CHECK: operator pubkey from provider must match signer; enforced by has_one.
-    pub operator: AccountInfo<'info>,
     #[account(mut)] pub bounty: Account<'info, Bounty>,
     #[account(
         init, payer = provider_operator, space = ResponseCommitment::SPACE,

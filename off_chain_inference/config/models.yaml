@@ -1,10 +1,19 @@
 models:
+  - id: HuggingFaceTB/SmolLM2-135M-Instruct   # ~135M, fastest for e2e tests
+    dtype: bfloat16
+    type: instruct
   - id: Qwen/Qwen2.5-0.5B-Instruct
     dtype: bfloat16
+    type: instruct
   - id: Qwen/Qwen2.5-1.5B-Instruct
     dtype: bfloat16
+    type: instruct
   - id: HuggingFaceTB/SmolLM2-1.7B-Instruct
     dtype: bfloat16
+    type: instruct
+  - id: HuggingFaceTB/SmolLM2-135M            # base model, raw text completion
+    dtype: bfloat16
+    type: base
 
 sampling:
   temperature: 1.0

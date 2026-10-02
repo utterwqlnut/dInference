@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 import secrets
 from dataclasses import dataclass
 from typing import Optional
@@ -30,7 +31,7 @@ from typing import Optional
 from solders.keypair import Keypair
 from solders.pubkey import Pubkey
 
-from chain import arweave
+from chain import walrus
 from chain.client import DInferenceClient, load_keypair, response_pda
 
 log = logging.getLogger("sdk")
@@ -60,7 +61,7 @@ class DInference:
                         wait_for_response: bool = True, poll_s: int = 3,
                         timeout_s: int = 600) -> InferenceResult:
         # 1. Upload prompt.
-        prompt_txid = arweave.upload(prompt.encode())
+        prompt_txid = walrus.upload(prompt.encode())
 
         # 2. Post bounty.
         nonce = secrets.randbits(63)
@@ -80,10 +81,12 @@ class DInference:
             commitment = await self.client.fetch_commitment(resp_pk)
             if commitment is not None:
                 response_txid = bytes(commitment.response_txid)
-                response_bytes = arweave.fetch(response_txid)
+                response_bytes = walrus.fetch(response_txid)
+                raw = response_bytes.decode()
+                clean = re.sub(r"<\|[^|]*\|>", "", raw).strip()
                 return InferenceResult(
                     bounty_pda=bounty_pk,
-                    response_text=response_bytes.decode(),
+                    response_text=clean,
                     response_txid=response_txid,
                 )
             await asyncio.sleep(poll_s)

@@ -22,7 +22,7 @@ import logging
 
 from solders.pubkey import Pubkey
 
-from chain import arweave
+from chain import walrus
 from chain.client import DInferenceClient, model_id_hash
 from chain.events import subscribe_events
 from .fingerprint_pipeline import FingerprintProvider
@@ -58,8 +58,8 @@ class ProviderDaemon:
                 return
 
             # 1. Fetch prompt from Arweave.
-            log.info("[%s] fetching prompt from Arweave", bounty_pk)
-            prompt_bytes = arweave.fetch(bytes(ev.data.prompt_txid))
+            log.info("[%s] fetching prompt from Walrus", bounty_pk)
+            prompt_bytes = walrus.fetch(bytes(ev.data.prompt_txid))
             prompt = prompt_bytes.decode()
 
             # 2. Run inference.
@@ -67,9 +67,9 @@ class ProviderDaemon:
             log.info("[%s] running inference (prompt=%d bytes)", bounty_pk, len(prompt_bytes))
             out = self.provider.generate(prompt, seed=seed_int)
 
-            # 3. Upload response to Arweave.
+            # 3. Upload response to Walrus.
             response_bytes = out["text"].encode()
-            response_txid = arweave.upload(response_bytes)
+            response_txid = walrus.upload(response_bytes)
 
             # 4. claim_bounty on-chain.
             log.info("[%s] submitting claim_bounty", bounty_pk)

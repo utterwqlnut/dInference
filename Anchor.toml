@@ -6,10 +6,10 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-dinference = "11111111111111111111111111111111"
+dinference = "EDX9NGUiJGtGtLDTHbRCqLrb6Mbf7ES4eKuxumpfUyWq"
 
 [programs.devnet]
-dinference = "11111111111111111111111111111111"
+dinference = "EDX9NGUiJGtGtLDTHbRCqLrb6Mbf7ES4eKuxumpfUyWq"
 
 [registry]
 url = "https://api.apr.dev"

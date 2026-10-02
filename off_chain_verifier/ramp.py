@@ -2,7 +2,7 @@
 
 Subscribes to the dInference program's event stream. When a ChallengeOpened
 event lists this verifier in the committee, fetches prompt + response from
-Arweave, runs the local fingerprint check, submits `verifier_vote`, and
+Walrus, runs the local fingerprint check, submits `verifier_vote`, and
 opportunistically tries `finalize_challenge` once the outcome is decidable.
 
 Usage:
@@ -20,7 +20,7 @@ import logging
 
 from solders.pubkey import Pubkey
 
-from chain import arweave
+from chain import walrus
 from chain.client import (
     DInferenceClient, challenge_pda, provider_pda, verifier_pda,
 )
@@ -59,10 +59,10 @@ class VerifierDaemon:
             # Fetch blobs. If fetch fails for ANY reason, auto-vote guilty —
             # provider didn't post what they claimed.
             try:
-                prompt_bytes = arweave.fetch(bytes(bounty.prompt_txid))
-                response_bytes = arweave.fetch(bytes(commitment.response_txid))
-            except arweave.ArweaveError as e:
-                log.warning("[%s] arweave fetch failed → voting guilty: %s", bounty_pk, e)
+                prompt_bytes = walrus.fetch(bytes(bounty.prompt_txid))
+                response_bytes = walrus.fetch(bytes(commitment.response_txid))
+            except walrus.WalrusError as e:
+                log.warning("[%s] walrus fetch failed → voting guilty: %s", bounty_pk, e)
                 tx = await self.client.verifier_vote(bounty_pk, verdict=True, fp_cos=-1.0)
                 log.info("[%s] vote (unretrievable): %s", bounty_pk, tx.signature)
                 return
@@ -76,7 +76,11 @@ class VerifierDaemon:
                 "fingerprint": list(commitment.fingerprint),
             })
             verdict = not result["passed"]
-            log.info("[%s] verdict=%s fp_cos=%.4f", bounty_pk, verdict, result["fp_cos"])
+            log.info(
+                "[%s] verdict=%s fp_cos=%.4f n_tokens=%d truncated=%s reason=%s",
+                bounty_pk, verdict, result["fp_cos"], result["n_tokens"],
+                result.get("truncated"), result.get("reason"),
+            )
 
             tx = await self.client.verifier_vote(bounty_pk, verdict, result["fp_cos"])
             log.info("[%s] voted: %s", bounty_pk, tx.signature)

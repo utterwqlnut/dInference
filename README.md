@@ -6,10 +6,10 @@ Validated at **100% TPR / 0% FPR** on 1,500 cross-family samples at `cos_thresho
 
 ## How it works
 
-1. **User posts a bounty.** User escrows SOL on-chain, uploads prompt to Arweave, submits `(prompt_txid, model_id, bounty_lamports)` via one tx. Chain emits `BountyPosted`.
-2. **Providers race.** Every provider daemon for that model sees the event, fetches the prompt from Arweave, runs inference, uploads response to Arweave, and submits `claim_bounty(response_txid, fingerprint)`. First valid tx to land wins; losers' txs revert.
+1. **User posts a bounty.** User escrows SOL on-chain, uploads prompt to Walrus, submits `(prompt_txid, model_id, bounty_lamports)` via one tx. Chain emits `BountyPosted`.
+2. **Providers race.** Every provider daemon for that model sees the event, fetches the prompt from Walrus, runs inference, uploads response to Walrus, and submits `claim_bounty(response_txid, fingerprint)`. First valid tx to land wins; losers' txs revert.
 3. **Challenge window opens.** For a configurable window (default ~7 days), anyone can challenge the response by posting a bond. The chain deterministically picks a committee of K verifiers from the model's verifier pool via `hash(seed || bounty || i) mod pool_size` for each slot.
-4. **Verifiers vote.** Each committee member fetches prompt+response from Arweave, recomputes the fingerprint under the real model, compares cosine similarity, and submits `verifier_vote` on-chain.
+4. **Verifiers vote.** Each committee member fetches prompt+response from Walrus, recomputes the fingerprint under the real model, compares cosine similarity, and submits `verifier_vote` on-chain.
 5. **Early finalize.** The moment vote counts can no longer flip the outcome (quorum of guilty reached, or honest majority mathematically locked), anyone calls `finalize_challenge`. Payouts and slashing happen atomically.
 6. **Optimistic payment.** If no challenge arrives within the window, `finalize_payment` pays the winning provider the full bounty.
 
@@ -113,13 +113,17 @@ Selection is O(K) hashes, O(K) swap-removes. No sorting. Deterministic and repro
 
 ## Off-chain components
 
-**`FingerprintProvider`** (`off_chain_inference/`) — `transformers.Pipeline` subclass; runs model, computes fingerprint, returns `{text, fingerprint, seed}`.
+**`FingerprintProvider`** (`off_chain_inference/`) — `transformers.Pipeline` subclass; runs model, computes fingerprint, returns `{text, fingerprint, seed}`. Applies the tokenizer's chat template for `type: instruct` models and raw text for `type: base` (declared per-model in `off_chain_inference/config/models.yaml`).
 
-**`FingerprintVerifier`** (`off_chain_verifier/`) — `transformers.Pipeline` subclass; teacher-forces response, recomputes fingerprint, returns `{fp_cos, passed, truncated, reason}`.
+**`FingerprintVerifier`** (`off_chain_verifier/`) — `transformers.Pipeline` subclass; teacher-forces response, recomputes fingerprint, returns `{fp_cos, passed, truncated, reason}`. Mirrors the provider's prompt tokenization so hidden-state positions line up exactly.
 
-**Provider daemon** (planned) — WebSocket subscription to `BountyPosted` events, races to `claim_bounty`.
+**Provider daemon** (`off_chain_inference/ramp.py`) — WebSocket subscription to `BountyPosted`; fetches prompt from Walrus, runs inference, uploads response, submits `claim_bounty`.
 
-**Verifier daemon** (planned) — WebSocket subscription to `ChallengeOpened` events, submits `verifier_vote` + opportunistic `finalize_challenge`.
+**Verifier daemon** (`off_chain_verifier/ramp.py`) — WebSocket subscription to `ChallengeOpened`; votes and opportunistically calls `finalize_challenge` when the outcome is mathematically decidable.
+
+**User SDK** (`sdk/client.py`) — `DInferenceClient.inference(prompt, model_id)` posts a bounty, polls for the response commitment, fetches from Walrus, and returns clean text (special tokens stripped). `.challenge(bounty_pda, model_id)` opens a challenge.
+
+**Chain client** (`chain/client.py`) — PDA derivation, borsh instruction builders, versioned-tx submission, Anchor event decoding, Walrus blob I/O (`chain/walrus.py`).
 
 ## Results
 
@@ -135,11 +139,33 @@ Evaluated on 500 prompts × 3 scenarios (1,500 samples total):
 
 ## Code status
 
-- **Smart contract** (`programs/dinference/`) — compiles, 6/6 Rust unit tests pass, BPF binary builds. Deterministic committee selection implemented. Economic parameters configurable. Ready for devnet deployment.
-- **Fingerprint pipelines** (`off_chain_inference/`, `off_chain_verifier/`) — validated end-to-end on cross-family evals. Ready to integrate with on-chain lifecycle.
-- **Daemons + SDK** — not yet built.
+- **Smart contract** (`programs/dinference/`) — deployed to local validator, 29 Rust unit tests covering quorum math, early-finalize decidability, slash arithmetic, reservation formula, vault invariants, pool ops.
+- **Fingerprint pipelines** (`off_chain_inference/`, `off_chain_verifier/`) — validated end-to-end on cross-family evals and on live local runs (fp_cos = 1.0000 on honest flow).
+- **Daemons + SDK** — built and running end-to-end: provider claims honest bounties, verifiers acquit honest responses, challenge resolves without over-slashing. Walrus (Sui testnet) for prompt/response storage.
+- **Economics** — mechanism is wired; the live config has placeholder values (verify_fee, dishonesty_fee, challenger_reward, time windows all at defaults/zero). Needs real tuning before any adversarial deployment.
 
-## Running the evaluation
+## Running the end-to-end flow
+
+Spin up a local validator, deploy, register operators, run an inference, challenge it:
+
+```bash
+solana-test-validator --reset           # separate terminal
+
+./scripts/local_e2e.sh deploy           # build + deploy program
+./scripts/local_e2e.sh up                # init config/model, register 1 provider + 3 verifiers, spawn daemons
+./scripts/local_e2e.sh bounty "What is 2+2?"
+# → prints bounty PDA + response text
+
+./scripts/local_e2e.sh challenge <bounty_pda>
+# → verifiers vote; verdict=False, fp_cos≈1.0, challenge resolves without slashing
+
+./scripts/local_e2e.sh status            # daemon pids
+./scripts/local_e2e.sh pool              # verifier pool membership
+./scripts/local_e2e.sh down              # stop daemons
+./scripts/local_e2e.sh clean             # wipe keypairs + logs
+```
+
+## Running the fingerprint evaluation
 
 Uses [Modal](https://modal.com) for parallel GPU execution:
 
